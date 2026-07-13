@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% block title %}Login · APAC Visitas V3{% endblock %}
+{% extends 'base.html' %}{% block title %}Login · APAC Visitas Pouso Alegre{% endblock %}
 {% block content %}
 <section class="login-card">
   <img src="{{ url_for('static',filename='img/logo_apac.png') }}" alt="APAC Pouso Alegre - MG">
@@ -8,6 +8,5 @@
     <label>Senha<input type="password" name="password" required></label>
     <button>Entrar</button>
   </form>
-  <div class="demo-access"><small><b>Admin:</b> admin / admin123</small><small><b>Portal do usuário:</b> visitante / visitante123</small></div>
 </section>
 {% endblock %}
