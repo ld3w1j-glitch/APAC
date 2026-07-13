@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Usuários do sistema</h1>
+    <p>Controle de acesso por função.</p>
+  </div>
+  <a class="button" href="{{ url_for('users.create') }}">+ Novo usuário</a>
+</div>
+
+<div class="card table-card">
+  <table>
+    <tr>
+      <th>Nome</th>
+      <th>Usuário</th>
+      <th>Perfil</th>
+      <th>Situação</th>
+      <th>Ações</th>
+    </tr>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.full_name or '-' }}</td>
+      <td>{{ u.username }}</td>
+      <td>{{ u.role }}</td>
+      <td><span class="badge {{ 'ativo' if u.active else 'suspenso' }}">{{ 'Ativo' if u.active else 'Inativo' }}</span></td>
+      <td>
+        <div class="user-actions">
+          <form method="post" action="{{ url_for('users.toggle', user_id=u.id) }}">
+            <button class="secondary" type="submit">{{ 'Desativar' if u.active else 'Ativar' }}</button>
+          </form>
+          {% if u.id != current_user.id %}
+          <form method="post" action="{{ url_for('users.delete', user_id=u.id) }}" onsubmit="return confirm('Excluir permanentemente o usuário {{ u.username }}? Esta ação não poderá ser desfeita.');">
+            <button class="danger-button" type="submit">Excluir</button>
+          </form>
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

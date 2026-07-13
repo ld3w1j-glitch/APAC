@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <h1>Relatório diário</h1>
+  <form method="get">
+    <input type="date" name="date" value="{{ date_str }}">
+    <button type="submit">Consultar</button>
+  </form>
+</div>
+
+<section class="card">
+  <table>
+    <tr>
+      <th>Visitante</th>
+      <th>Recuperando</th>
+      <th>Entrada</th>
+      <th>Saída</th>
+      <th>Operador</th>
+    </tr>
+    {% for l in logs %}
+    <tr>
+      <td>{{ l.visitor.full_name }}</td>
+      <td>{{ l.visitor.resident_name }}</td>
+      <td>{{ l.check_in.strftime('%H:%M') }}</td>
+      <td>{{ l.check_out.strftime('%H:%M') if l.check_out else 'Na unidade' }}</td>
+      <td>{{ l.operator }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5">Sem registros.</td></tr>
+    {% endfor %}
+  </table>
+</section>
+
+<div class="actions">
+  <a class="button" href="{{ url_for('reports.daily_pdf', date=date_str) }}">Baixar relatório em PDF</a>
+  <button type="button" onclick="window.print()">Imprimir tela</button>
+</div>
+{% endblock %}

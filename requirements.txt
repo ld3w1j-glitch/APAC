@@ -1,0 +1,11 @@
+Flask==3.1.1
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-Migrate==4.1.0
+# PostgreSQL é instalado somente no Linux/Railway. No Windows o sistema usa SQLite.
+psycopg2-binary==2.9.10; platform_system != "Windows"
+gunicorn==23.0.0; platform_system != "Windows"
+qrcode[pil]==8.2
+Pillow==11.2.1
+python-dotenv==1.1.0
+reportlab==4.4.2

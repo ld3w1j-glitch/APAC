@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Portal do Visitante · APAC{% endblock %}
+{% block content %}
+<section class="portal-hero" id="inicio">
+  <div>
+    <span class="eyebrow">APAC DE POUSO ALEGRE · MG</span>
+    <h1>Portal de orientação ao visitante</h1>
+    <p>Conheça a instituição e siga, na ordem, as principais orientações para uma visita segura, organizada e acolhedora.</p>
+    <div class="portal-actions">
+      <a class="button" href="#historia">Conhecer a instituição</a>
+      <a class="button secondary" href="#etapas">Começar orientações</a>
+    </div>
+  </div>
+  <img src="{{ url_for('static', filename='img/logo_apac.png') }}" alt="APAC Pouso Alegre - MG">
+</section>
+
+<nav class="portal-jump" aria-label="Atalhos das orientações">
+  <a href="#historia">História</a><a href="#cadastro">Cadastro</a><a href="#documentos">Documentos</a>
+  <a href="#visitantes">Quem pode visitar</a><a href="#credencial">Credencial</a><a href="#horarios">Horários</a>
+  <a href="#roupas">Roupas</a><a href="#seguranca">Segurança</a><a href="#durante">Durante a visita</a>
+</nav>
+
+<section class="portal-section story" id="historia">
+  <div>
+    <span class="step-label">A INSTITUIÇÃO</span>
+    <h2>História e propósito da APAC</h2>
+    <p>A APAC é uma instituição dedicada à recuperação e à reintegração social, com trabalho baseado no respeito à dignidade humana, na responsabilidade, na participação da família e na construção de novas oportunidades.</p>
+    <p>Na unidade de Pouso Alegre, visitantes e familiares fazem parte desse processo. Por isso, as regras de entrada e convivência ajudam a preservar um ambiente seguro, organizado e acolhedor para todos.</p>
+  </div>
+  <div class="values-grid"><div><b>Respeito</b><span>Tratamento digno e responsável.</span></div><div><b>Diálogo</b><span>Orientação clara e convivência pacífica.</span></div><div><b>Esperança</b><span>Fortalecimento de vínculos e novos caminhos.</span></div></div>
+</section>
+
+<div id="etapas" class="portal-flow-title"><span class="eyebrow">PASSO A PASSO</span><h2>Orientações na mesma ordem do vídeo institucional</h2></div>
+
+{% set slides = [
+('cadastro','1. Cadastro e documentação','Antes da visita, faça o cadastro e confira os horários definidos pela unidade.','01_cadastro.png'),
+('documentos','2. Documentos exigidos','Apresente a ficha, fotografia, comprovante, documento com foto e demais comprovantes quando necessários.','02_documentos.png'),
+('visitantes','3. Quem pode visitar','Confira o limite de visitantes, os vínculos autorizados e as regras para menores de idade.','03_quem_pode.png'),
+('credencial','4. Uso da credencial','A credencial deve permanecer visível durante toda a permanência na unidade.','04_credencial.png'),
+('horarios','5. Horários de visita','Consulte previamente os dias, horários e orientações específicas da unidade.','05_horarios.png'),
+('criancas','6. Crianças e responsáveis','Menores devem estar acompanhados por adulto cadastrado, credenciado e autorizado.','06_criancas.png'),
+('roupas','7. Roupas permitidas','Use vestimentas adequadas, discretas e compatíveis com as regras da instituição.','07_roupas.png'),
+('seguranca','8. Segurança e objetos proibidos','Armas, drogas, celulares e substâncias proibidas não podem entrar na unidade.','08_seguranca.png'),
+('areas','9. Áreas restritas','Respeite portas, setores e espaços sinalizados como restritos.','09_areas.png'),
+('durante','10. Durante a visita','Mantenha postura respeitosa, evite ruídos, cumpra os horários e preserve a organização.','10_durante.png'),
+('condutas','11. Condutas não permitidas','Evite atitudes íntimas, discussões, desrespeito às orientações e acessos não autorizados.','11_condutas.png'),
+('encerramento','12. Encerramento','Sua colaboração fortalece os vínculos e contribui para uma visita segura e acolhedora.','12_encerramento.png')
+] %}
+{% for anchor,title,desc,image in slides %}
+<section class="portal-slide" id="{{ anchor }}">
+  <div class="portal-copy"><span class="step-label">ETAPA {{ loop.index }}</span><h2>{{ title }}</h2><p>{{ desc }}</p>
+    <div class="slide-buttons">
+      {% if not loop.first %}<a class="button secondary" href="#{{ slides[loop.index0-1][0] }}">Voltar</a>{% endif %}
+      {% if not loop.last %}<a class="button" href="#{{ slides[loop.index][0] }}">Próxima orientação</a>{% else %}<a class="button" href="#inicio">Voltar ao início</a>{% endif %}
+    </div>
+  </div>
+  <a class="portal-image" href="{{ url_for('static', filename='img/portal/' ~ image) }}" target="_blank" aria-label="Abrir imagem completa"><img loading="lazy" src="{{ url_for('static', filename='img/portal/' ~ image) }}" alt="{{ title }}"></a>
+</section>
+{% endfor %}
+{% endblock %}
