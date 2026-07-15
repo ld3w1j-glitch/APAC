@@ -1,1 +1,47 @@
-{% extends 'base.html' %}{% block content %}<div class="page-head"><h1>{{visitor.full_name}}</h1><div style="display:flex;gap:.6rem;align-items:center"><a class="button secondary" href="{{url_for('visitors.edit',visitor_id=visitor.id)}}">Editar</a>{% if current_user.role == 'admin' %}<form method="post" action="{{url_for('visitors.delete',visitor_id=visitor.id)}}" onsubmit="return confirm('Excluir permanentemente o visitante {{ visitor.full_name|e }}? Esta ação também removerá os registros vinculados e não poderá ser desfeita.');" style="margin:0"><button type="submit" class="button danger">Excluir visitante</button></form>{% endif %}</div></div><div class="detail-grid"><section class="card profile">{% if visitor.photo_filename %}<img class="photo" src="{{url_for('static',filename='uploads/'+visitor.photo_filename)}}">{% else %}<div class="photo placeholder">Sem foto</div>{% endif %}<h2>{{visitor.full_name}}</h2><p><b>CPF:</b> {{visitor.cpf}}</p><p><b>Recuperando:</b> {{visitor.resident_name}}</p><p><b>Parentesco:</b> {{visitor.relationship or '-'}}</p><p><b>Status:</b> <span class="badge {{visitor.status}}">{{visitor.status}}</span></p><img class="qr" src="{{url_for('visitors.qr',visitor_id=visitor.id)}}"><small>Código: {{visitor.credential_code[:12]}}</small></section><section class="card"><h2>Conferência</h2>{% set d=visitor.documents %}{% for f,l in [('registration_form','Ficha preenchida'),('photo_3x4','Foto 3x4'),('proof_of_address','Comprovante de residência'),('identity_copy','Documento com foto'),('marriage_or_union','Casamento/união'),('originals_checked','Originais conferidos')] %}<p>{{'✅' if d and d|attr(f) else '⬜'}} {{l}}</p>{% endfor %}<hr><p><b>Orientações:</b> {{'Aceitas em '+visitor.terms_accepted_at.strftime('%d/%m/%Y %H:%M') if visitor.terms_accepted_at else 'Pendente'}}</p>{% if not visitor.terms_accepted_at %}<form method="post" action="{{url_for('visitors.accept_terms',visitor_id=visitor.id)}}"><button>Registrar aceite</button></form>{% endif %}<hr>{% set open_log=visitor.visits|selectattr('check_out','equalto',None)|first %}{% if open_log %}<p class="inside">Visitante dentro da unidade desde {{open_log.check_in.strftime('%H:%M')}}</p>{% else %}<form method="post" action="{{url_for('checkin.enter',visitor_id=visitor.id)}}"><button>Registrar entrada</button></form>{% endif %}</section></div>{% endblock %}
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ visitor.full_name }}</h1>
+  <div class="actions">
+    <a class="button" href="{{ url_for('visitors.credential_pdf', visitor_id=visitor.id) }}">Gerar credencial em PDF</a>
+    <a class="button secondary" href="{{ url_for('checkin.verify', visitor_id=visitor.id) }}">Conferir credencial</a>
+    <a class="button secondary" href="{{ url_for('visitors.edit', visitor_id=visitor.id) }}">Editar</a>
+  </div>
+</div>
+<div class="detail-grid">
+  <section class="card profile">
+    {% if visitor.photo_filename %}
+      <img class="photo" src="{{ url_for('static', filename='uploads/' + visitor.photo_filename) }}" alt="Foto de {{ visitor.full_name }}">
+    {% else %}
+      <div class="photo placeholder">Sem foto</div>
+    {% endif %}
+    <h2>{{ visitor.full_name }}</h2>
+    <p><b>CPF:</b> {{ visitor.cpf }}</p>
+    <p><b>Recuperando:</b> {{ visitor.resident_name }}</p>
+    <p><b>Parentesco:</b> {{ visitor.relationship or '-' }}</p>
+    <p><b>Validade:</b> {{ visitor.credential_valid_until.strftime('%d/%m/%Y') if visitor.credential_valid_until else 'Sem data definida' }}</p>
+    <p><b>Status:</b> <span class="badge {{ visitor.status }}">{{ visitor.status }}</span></p>
+    <img class="qr" src="{{ url_for('visitors.qr', visitor_id=visitor.id) }}" alt="QR Code da credencial">
+    <small>Código: {{ visitor.credential_code[:12] }}</small>
+  </section>
+  <section class="card">
+    <h2>Conferência</h2>
+    {% set d=visitor.documents %}
+    {% for f,l in [('registration_form','Ficha preenchida'),('photo_3x4','Foto 3x4'),('proof_of_address','Comprovante de residência'),('identity_copy','Documento com foto'),('marriage_or_union','Casamento/união'),('originals_checked','Originais conferidos')] %}
+      <p>{{ '✅' if d and d|attr(f) else '⬜' }} {{ l }}</p>
+    {% endfor %}
+    <hr>
+    <p><b>Orientações:</b> {{ 'Aceitas em ' + visitor.terms_accepted_at.strftime('%d/%m/%Y %H:%M') if visitor.terms_accepted_at else 'Pendente' }}</p>
+    {% if not visitor.terms_accepted_at %}
+      <form method="post" action="{{ url_for('visitors.accept_terms', visitor_id=visitor.id) }}"><button>Registrar aceite</button></form>
+    {% endif %}
+    <hr>
+    {% set open_log=visitor.visits|selectattr('check_out','equalto',None)|first %}
+    {% if open_log %}
+      <p class="inside">Visitante dentro da unidade desde {{ open_log.check_in.strftime('%H:%M') }}</p>
+    {% else %}
+      <form method="post" action="{{ url_for('checkin.enter', visitor_id=visitor.id) }}"><button>Registrar entrada</button></form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

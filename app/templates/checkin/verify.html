@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="credential-verify {{ 'verified-ok' if approved else 'verified-alert' }}">
+  <div class="verify-status">
+    <span class="verify-icon">{{ '✓' if approved else '!' }}</span>
+    <div>
+      <div class="eyebrow">CONFERÊNCIA DA CREDENCIAL</div>
+      <h1>{{ 'VISITANTE CONFIRMADO' if approved else 'ATENÇÃO: ENTRADA NÃO LIBERADA' }}</h1>
+      <p>
+        {% if expired %}A credencial está vencida.
+        {% elif visitor.status != 'ativo' %}O cadastro está com status {{ visitor.status }}.
+        {% else %}A foto e os dados abaixo devem corresponder à pessoa apresentada na portaria.{% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="verify-grid">
+  <section class="card verify-profile">
+    {% if visitor.photo_filename %}
+      <img class="verify-photo" src="{{ url_for('static', filename='uploads/' + visitor.photo_filename) }}" alt="Foto oficial de {{ visitor.full_name }}">
+    {% else %}
+      <div class="verify-photo placeholder">SEM FOTO</div>
+    {% endif %}
+    <h2>{{ visitor.full_name }}</h2>
+    <p class="identity-warning">Compare cuidadosamente esta foto com a pessoa presente.</p>
+  </section>
+
+  <section class="card verify-data">
+    <h2>Dados do cadastro</h2>
+    <dl>
+      <div><dt>Nome completo</dt><dd>{{ visitor.full_name }}</dd></div>
+      <div><dt>CPF</dt><dd>{{ visitor.cpf }}</dd></div>
+      <div><dt>Data de nascimento</dt><dd>{{ visitor.birth_date.strftime('%d/%m/%Y') if visitor.birth_date else 'Não informada' }}</dd></div>
+      <div><dt>Recuperando visitado</dt><dd>{{ visitor.resident_name }}</dd></div>
+      <div><dt>Parentesco</dt><dd>{{ visitor.relationship or '-' }}</dd></div>
+      <div><dt>Validade</dt><dd>{{ visitor.credential_valid_until.strftime('%d/%m/%Y') if visitor.credential_valid_until else 'Sem data definida' }}</dd></div>
+      <div><dt>Status</dt><dd><span class="badge {{ visitor.status }}">{{ visitor.status }}</span></dd></div>
+      <div><dt>Orientações</dt><dd>{{ 'Aceitas' if visitor.terms_accepted_at else 'Pendentes' }}</dd></div>
+    </dl>
+
+    {% if visitor.notes %}
+      <div class="agent-note"><b>Observações do cadastro:</b><br>{{ visitor.notes }}</div>
+    {% endif %}
+
+    <div class="verify-actions">
+      {% if open_log %}
+        <p class="inside">Entrada registrada às {{ open_log.check_in.strftime('%H:%M') }}.</p>
+        <form method="post" action="{{ url_for('checkin.leave', log_id=open_log.id) }}"><button class="danger">Registrar saída</button></form>
+      {% elif approved %}
+        <form method="post" action="{{ url_for('checkin.enter', visitor_id=visitor.id) }}"><button>Confirmar e registrar entrada</button></form>
+      {% endif %}
+      <a class="button secondary" href="{{ url_for('visitors.detail', visitor_id=visitor.id) }}">Abrir cadastro completo</a>
+    </div>
+  </section>
+</div>
+{% endblock %}
