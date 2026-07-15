@@ -12,6 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from .extensions import db
 from .models import Visitor, VisitorDocuments
+from .access import roles_required
 
 bp = Blueprint("visitors", __name__)
 ALLOWED = {"png", "jpg", "jpeg", "webp"}
@@ -256,6 +257,22 @@ def credential_pdf(visitor_id):
 
 @bp.route("/<int:visitor_id>/excluir", methods=["POST"])
 @login_required
+@roles_required("admin")
 def delete(visitor_id):
-    visitor=Visitor.query.get_or_404(visitor_id); db.session.delete(visitor); db.session.commit(); flash("Visitante excluído.", "success")
+    visitor = Visitor.query.get_or_404(visitor_id)
+    visitor_name = visitor.full_name
+    photo_filename = visitor.photo_filename
+
+    db.session.delete(visitor)
+    db.session.commit()
+
+    if photo_filename:
+        photo_path = os.path.join(current_app.config["UPLOAD_FOLDER"], photo_filename)
+        try:
+            if os.path.isfile(photo_path):
+                os.remove(photo_path)
+        except OSError:
+            current_app.logger.warning("Não foi possível remover a foto do visitante: %s", photo_path)
+
+    flash(f"Visitante {visitor_name} excluído permanentemente.", "success")
     return redirect(url_for("visitors.index"))

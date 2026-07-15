@@ -6,6 +6,14 @@
     <a class="button" href="{{ url_for('visitors.credential_pdf', visitor_id=visitor.id) }}">Gerar credencial em PDF</a>
     <a class="button secondary" href="{{ url_for('checkin.verify', visitor_id=visitor.id) }}">Conferir credencial</a>
     <a class="button secondary" href="{{ url_for('visitors.edit', visitor_id=visitor.id) }}">Editar</a>
+    {% if current_user.role == 'admin' %}
+      <form method="post"
+            action="{{ url_for('visitors.delete', visitor_id=visitor.id) }}"
+            onsubmit="return confirm('Excluir permanentemente o visitante {{ visitor.full_name|e }}? Esta ação também removerá os registros vinculados e não poderá ser desfeita.');"
+            style="margin:0">
+        <button type="submit" class="button danger">Excluir visitante</button>
+      </form>
+    {% endif %}
   </div>
 </div>
 <div class="detail-grid">
