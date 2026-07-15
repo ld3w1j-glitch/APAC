@@ -9,6 +9,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from .extensions import db
 from .models import Visitor, VisitorDocuments
 
@@ -184,14 +185,40 @@ def credential_pdf(visitor_id):
         pdf.setFillColor(colors.HexColor("#607D98")); pdf.setFont("Helvetica-Bold", 11)
         pdf.drawCentredString(photo_x + photo_w/2, photo_y + photo_h/2, "SEM FOTO")
 
-    # Informações.
+    # QR Code em uma coluna exclusiva, sem sobrepor os dados do visitante.
+    qr_img = _qr_image(visitor)
+    qr_buf = io.BytesIO(); qr_img.save(qr_buf, format="PNG"); qr_buf.seek(0)
+    qr_size = 78
+    qr_x = card_x + card_w - qr_size - 14
+    qr_y = card_y + 36
+
+    # Linha divisória entre informações e QR Code.
+    divider_x = qr_x - 10
+    pdf.setStrokeColor(colors.HexColor("#D5E1EB"))
+    pdf.setLineWidth(0.8)
+    pdf.line(divider_x, card_y + 28, divider_x, card_y + card_h - 62)
+
+    # Informações com largura limitada até a coluna do QR Code.
     info_x = card_x + 126
     info_y = card_y + card_h - 76
+    label_width = 65
+    value_x = info_x + label_width
+    value_max_width = divider_x - value_x - 6
+
+    def fit_text(value, font_name, font_size, max_width):
+        value = str(value or "-")
+        if stringWidth(value, font_name, font_size) <= max_width:
+            return value
+        suffix = "..."
+        while value and stringWidth(value + suffix, font_name, font_size) > max_width:
+            value = value[:-1]
+        return value + suffix if value else suffix
+
     pdf.setFillColor(blue)
     pdf.setFont("Helvetica-Bold", 15)
-    name = visitor.full_name[:36]
-    pdf.drawString(info_x, info_y, name)
-    pdf.setFont("Helvetica", 10)
+    name_max_width = divider_x - info_x - 6
+    pdf.drawString(info_x, info_y, fit_text(visitor.full_name, "Helvetica-Bold", 15, name_max_width))
+
     rows = [
         ("CPF", visitor.cpf),
         ("Recuperando", visitor.resident_name),
@@ -204,18 +231,12 @@ def credential_pdf(visitor_id):
         pdf.setFont("Helvetica-Bold", 9); pdf.setFillColor(colors.HexColor("#506B83"))
         pdf.drawString(info_x, y, f"{label}:")
         pdf.setFont("Helvetica", 9); pdf.setFillColor(colors.HexColor("#17324D"))
-        pdf.drawString(info_x + 65, y, str(value)[:38])
+        pdf.drawString(value_x, y, fit_text(value, "Helvetica", 9, value_max_width))
         y -= 18
 
-    # QR Code.
-    qr_img = _qr_image(visitor)
-    qr_buf = io.BytesIO(); qr_img.save(qr_buf, format="PNG"); qr_buf.seek(0)
-    qr_size = 92
-    qr_x = card_x + card_w - qr_size - 18
-    qr_y = card_y + 22
     pdf.drawImage(ImageReader(qr_buf), qr_x, qr_y, width=qr_size, height=qr_size, mask="auto")
-    pdf.setFillColor(light_blue); pdf.setFont("Helvetica-Bold", 8)
-    pdf.drawCentredString(qr_x + qr_size/2, qr_y - 10, "ESCANEIE PARA CONFERIR")
+    pdf.setFillColor(light_blue); pdf.setFont("Helvetica-Bold", 7)
+    pdf.drawCentredString(qr_x + qr_size/2, qr_y - 9, "ESCANEIE PARA CONFERIR")
 
     # Código e aviso.
     pdf.setFillColor(colors.HexColor("#607D98")); pdf.setFont("Helvetica", 7)
